@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>新規アカウント登録</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #1a2436;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .auth-card {
+            background: linear-gradient(180deg, #2a3d5c 0%, #17243c 100%);
+            border: 2px solid #364e75;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 { color: #fff; text-align: center; margin-top: 0; margin-bottom: 25px; font-size: 1.5rem; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; color: #a0b2ce; font-size: 0.9rem; }
+        .input-field { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #4a638d; background: #243552; color: #fff; font-size: 1rem; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; font-size: 1.1rem; margin-top: 10px; }
+        .btn-submit { background: #4caf50; color: white; }
+        .btn-submit:hover { background: #45a049; }
+        .link-text { text-align: center; margin-top: 20px; font-size: 0.85rem; color: #a0b2ce; }
+        .link-text a { color: #ffca28; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <h1>👤 新規アカウント登録</h1>
+        <form action="/signup" method="POST">
+            <div class="form-group">
+                <label>ユーザー名 ※途中で帰れません</label>
+                <input type="text" name="username" class="input-field" placeholder="ユーザー名を入力" required>
+            </div>
+            <div class="form-group">
+                <label>メールアドレス</label>
+                <input type="email" name="email" class="input-field" placeholder="example@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>パスワード</label>
+                <input type="password" name="password" class="input-field" placeholder="6文字以上" required>
+            </div>
+            <button type="submit" class="btn btn-submit">登録する</button>
+        </form>
+        <div class="link-text">
+            すでにアカウントをお持ちの方は <a href="/login">ログイン</a>
+        </div>
+    </div>
+</body>
+</html>

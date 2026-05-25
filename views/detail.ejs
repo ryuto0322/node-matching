@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title><%= post.title %> - 募集詳細</title>
+    <style>
+        body {
+            font-family: 'Arial Black', Gadget, sans-serif;
+            background-color: #1a2436;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 650px; margin: 0 auto; }
+        .main-card {
+            background: linear-gradient(180deg, #2a3d5c 0%, #17243c 100%);
+            border: 3px solid #4a638d; border-radius: 12px; padding: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4); margin-bottom: 20px;
+        }
+        h1 { color: #ffca28; text-shadow: 2px 2px 0px #000; margin-top: 0; border-bottom: 2px solid #4a638d; padding-bottom: 10px; }
+        .meta { font-size: 0.85rem; color: #a0b2ce; margin-bottom: 15px; }
+        .content { font-family: sans-serif; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px; border: 1px solid #364e75; }
+        .chat-section { background: #17243c; border: 2px solid #364e75; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .chat-title { font-size: 1.2rem; color: #ffca28; margin-top: 0; margin-bottom: 15px; }
+        .chat-input { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #4a638d; background: #243552; color: #fff; font-size: 1rem; box-sizing: border-box; margin-bottom: 10px; }
+        .actions { display: flex; justify-content: space-between; align-items: center; }
+        .btn { padding: 10px 20px; border-radius: 6px; font-weight: bold; text-decoration: none; cursor: pointer; border: 2px solid #fff; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); }
+        .btn-back { background: #6c757d; color: white; }
+        .btn-send { background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%); color: white; }
+        .btn-delete { background: linear-gradient(180deg, #f44336 0%, #c62828 100%); color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-card">
+            <h1><%= post.title %></h1>
+            <div class="meta">📅 投稿日時: <%= formattedDate %></div>
+            <div class="content"><%= post.content %></div>
+        </div>
+
+        <div class="chat-section">
+            <h3 class="chat-title">💬チャット</h3>
+            
+           <div class="chat-logs">
+                <% if (comments.length === 0) { %>
+                    <p style="color: #a0b2ce; text-align: center; font-size: 0.9rem; margin: 20px 0;">まだメッセージはありません。最初のチャットを打ってみよう！</p>
+                <% } else { %>
+                    <% comments.forEach(comment => { %>
+                        <div style="background: #243552; border: 1px solid #364e75; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+                            <strong style="color: #ffca28; font-size: 0.9rem;">👑 <%= comment.name %></strong>
+                            <div style="color: #fff; margin-top: 5px; font-family: sans-serif;"><%= comment.content %></div>
+                            <div style="color: #8da2c4; font-size: 0.75rem; text-align: right;">
+                                <%= new Date(comment.created_at).toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'}) %>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } %>
+            </div>
+
+            <form action="/posts/<%= post.id %>/comments" method="POST" style="margin-top: 20px;">
+                <input type="text" name="comment_content" class="chat-input" placeholder="メッセージを入力..." required autocomplete="off">
+                <div style="text-align: right;">
+                    <button type="submit" class="btn btn-send">🚀 送信する</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="actions">
+            <a href="/posts" class="btn btn-back">⬅ 一覧に戻る</a>
+            <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('本当にこの募集を削除しますか？');">
+                <button type="submit" class="btn btn-delete">🗑️ 募集を削除</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

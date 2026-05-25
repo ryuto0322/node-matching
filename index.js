@@ -1,23 +1,21 @@
 const express = require('express');
+const connection = require('./db');
+const bcrypt = require('bcrypt'); // 🌟 パスワード暗号化の道具
+const session = require('express-session'); // 🌟 ログイン状態を記憶する道具
+
 const app = express();
+
 app.use(express.urlencoded({ extended: true }));
-const mysql = require('mysql2');
+app.set('view engine', 'ejs');
 const PORT = 3000;
 
-
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'node_matching_db'
-});
-connection.connect((err) => {
-    if(err){
-        console.error('データベースにつながりませんでした:原因::'+err.stack);
-        return;
-    }
-    console.log('xamppのデータベースにつながりました')
-});
+// 🌟【重要】セッション（ログインの記憶）の設定をここに追加！
+app.use(session({
+    secret: 'secret-key-matching-app', // 記憶を暗号化するための秘密の合言葉（何でもOK）
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 60 * 60 * 1000 } // ログインを維持する時間（ここでは1時間）
+}));
 
 
 app.get('/posts', (req, res) => {
@@ -34,7 +32,7 @@ app.get('/posts', (req, res) => {
         <html lang="ja">
         <head>
             <meta charset="UTF-8">
-            <title>クラン募集一覧</title>
+            <title>趣味掲示板一覧</title>
             <style>
                 body {
                     font-family: 'Arial Black', Gadget, sans-serif;
@@ -159,7 +157,7 @@ app.get('/posts', (req, res) => {
         <body>
             <div class="clan-header">
                 <div class="clan-badge">👑</div>
-                <h1 class="clan-name">NSS MATCHING CLAN</h1>
+                <h1 class="clan-name">趣味掲示板へようこそ！</h1>
                 <div class="clan-info">現在の募集枠: ${results.length} 件 | タイプ: 誰でも歓迎</div>
             </div>
 
@@ -212,55 +210,87 @@ app.get('/posts', (req, res) => {
     });
 });
 // フォームからの投稿データを受け取ってDBに保存するルート
-app.post('/add', (req, res) => {
-    // 1. フォームから送られてきた「実際の入力内容」をキャッチする！
-    const title = req.body.title;
-    const content = req.body.content;
+// 💬 チャット（コメント）を送信して、データベースに保存するルート
+// 💬 チャットを送信して、データベースに保存するルート
+app.post('/posts/:id/comments', (req, res) => {
+    const postId = req.params.id;
+    const commentContent = req.body.comment_content;
 
-    // 2. SQLの ? の中に、上でキャッチした変数を当てはめる
-    const sql = 'INSERT INTO posts(title, content) VALUES(?, ?)';
-    const values = [title, content]; // ← ここが ['初めての編集', ...] のままだと固定されてしまいます
+    // 🌟ログインしている人の名前を取得（もしログインしていなければ「ゲスト」にする）
+    const username = req.session.username || 'ゲスト';
 
-    connection.query(sql, values, (err, result) => {
+    // SQLのINSERT文に name も追加して保存！
+    const sql = 'INSERT INTO comments (post_id, name, content) VALUES (?, ?, ?)';
+    
+    connection.query(sql, [postId, username, commentContent], (err, result) => {
         if (err) {
-            console.error('データ挿入エラー:', err);
-            return res.status(500).send('データの保存に失敗しました');
+            console.error('コメント保存エラー:', err);
+            return res.status(500).send('コメントの送信に失敗しました');
         }
-        // 保存できたら自動的に一覧（/posts）へ戻す
-        res.redirect('/posts');
+        res.redirect(`/posts/${postId}`);
     });
 });
-app.get('/new', (req, res) =>{
-    const html = `
-    <h1>新規募集の投稿</h1>
-    <form action="/add" method="POST">
-        <div>
-            <label for="title">タイトル:</label><br>
-            <input type="text" id="title" name="title" required style="width: 300px">
-        </div>
-        <br>
-        <div>
-            <label for="content">内容：</label><br>
-            <textarea id="content" name="content" required style="width: 300px; height: 100px;"></textarea>
-        </div>
-        <br>
-        <button type = "submit">募集を投稿する</button>
-    </form>
-    <br>
-    <a href="/posts">募集一覧に戻る</a>
-    `;
-    res.send(html);
+// 投稿の詳細画面を表示するルート（チャット履歴の取得付き！）
+app.get('/posts/:id', (req, res) => {
+    const postId = req.params.id;
+
+    // 1. まずは「投稿そのもの」を取得
+    const postSql = 'SELECT * FROM posts WHERE id = ?';
+    connection.query(postSql, [postId], (err, postResults) => {
+        if (err) return res.status(500).send('エラーが発生しました');
+        if (postResults.length === 0) return res.status(404).send('投稿が見つかりません');
+
+        const post = postResults[0];
+        const formattedDate = new Date(post.created_at).toLocaleString('ja-JP');
+
+        // 🔥【新機能】2. この投稿に紐づく「チャット履歴」を新しく作ったテーブルから古い順（ASC）で全件取得！
+        const commentSql = 'SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC';
+        connection.query(commentSql, [postId], (err, commentResults) => {
+            if (err) return res.status(500).send('チャットの取得に失敗しました');
+
+            // 3. 取得した「投稿」と「チャット履歴（配列）」の両方を、まとめてdetail.ejsに送り込む！
+            res.render('detail', { 
+                post: post, 
+                formattedDate: formattedDate,
+                comments: commentResults // 👈 これを新しく画面に渡します！
+            });
+        });
+    });
 });
 
 // ブラウザでアクセスしたときに表示する内容
-app.get('/', (req, res) => {
-    res.send(`
-        <div style="text-align: center; margin-top: 50px; font-family: sans-serif;">
-            <h1>🎉 Node.jsサーバー起動成功！</h1>
-            <p>ChatGPTのループを抜け出して、ついにここまで来ましたね！</p>
-            <p style="color: #ff4757; font-weight: bold;">ここから最強のマッチング掲示板を作っていこう！</p>
-        </div>
-    `);
+// 投稿の詳細画面を表示するルート
+app.get('/posts/:id', (req, res) => {
+    const postId = req.params.id;
+    const sql = 'SELECT * FROM posts WHERE id = ?';
+    
+    connection.query(sql, [postId], (err, results) => {
+        if (err) {
+            console.error('データ取得エラー:', err);
+            return res.status(500).send('エラーが発生しました');
+        }
+        if (results.length === 0) {
+            return res.status(404).send('指定された投稿が見つかりません');
+        }
+
+        const post = results[0];
+        const formattedDate = new Date(post.created_at).toLocaleString('ja-JP');
+
+        // 📌 先ほど作ったクラロワ風の views/detail.ejs を呼び出す！
+        res.render('detail', { post: post, formattedDate: formattedDate });
+    });
+});
+// 💬 チャット（コメント）を送信したときの処理
+app.post('/posts/:id/comments', (req, res) => {
+    const postId = req.params.id;
+    const commentContent = req.body.comment_content; // 画面から送られてきた文字
+
+    // 🌟本来はここでSQLを使ってテーブルに保存しますが、
+    // 🌟まずはエラーを出さずに「送信成功」を体感するために、一覧へリダイレクトさせます！
+    console.log(`【チャット受信】投稿ID: ${postId} へのメッセージ: ${commentContent}`);
+    
+    // 送信が終わったら、元の詳細画面に戻す
+    res.redirect(`/posts/${postId}`);
 });
 // 投稿の詳細画面を表示するルート
 app.get('/posts/:id', (req, res) => {
@@ -370,6 +400,67 @@ app.get('/posts/:id', (req, res) => {
         </html>
         `;
         res.send(html);
+    });
+});
+
+// 1. 新規登録画面を表示
+app.get('/signup', (req, res) => {
+    res.render('signup');
+});
+
+// 2. 新規登録のボタンが押されたときの処理
+app.post('/signup', async (req, res) => {
+    const { username, email, password } = req.body;
+
+    try {
+        // 🔥 実務の鉄則：パスワードを安全に暗号化（ハッシュ化）する
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // データベースにユーザーを保存
+        const sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+        connection.query(sql, [username, email, hashedPassword], (err, result) => {
+            if (err) {
+                console.error('ユーザー登録エラー:', err);
+                return res.status(500).send('登録に失敗しました（メールアドレスが既に使われている可能性があります）');
+            }
+            // 登録できたらログイン画面へ移動
+            res.redirect('/login');
+        });
+    } catch (error) {
+        res.status(500).send('サーバーエラーが発生しました');
+    }
+});
+
+// 3. ログイン画面を表示
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
+// 4. ログインボタンが押されたときの処理
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+    // メールアドレスからユーザーを探す
+    const sql = 'SELECT * FROM users WHERE email = ?';
+    connection.query(sql, [email], async (err, results) => {
+        if (err) return res.status(500).send('エラーが発生しました');
+        if (results.length === 0) return res.status(401).send('メールアドレスまたはパスワードが違います');
+
+        const user = results[0];
+
+        // 🔥 入力されたパスワードと、DBにある暗号化されたパスワードが一致するか検証
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (isMatch) {
+            // 🎉 一致したらセッションに「この人ログイン中！」と記憶させる
+            req.session.userId = user.id;
+            req.session.username = user.username;
+
+            // ログイン成功したら、掲示板の一覧画面へ！
+            res.redirect('/posts');
+        } else {
+            res.status(401).send('メールアドレスまたはパスワードが違います');
+        }
     });
 });
 
