@@ -463,6 +463,10 @@ app.post('/login', (req, res) => {
         }
     });
 });
+// トップページ（/）にアクセスされたら、一覧画面（/posts）にリダイレクトする
+app.get('/', (req, res) => {
+    res.redirect('/posts');
+});
 
 // サーバーを起動する
 app.listen(PORT, () => {
