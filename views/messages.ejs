@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>メッセージ一覧</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* メッセージ画面専用の微調整 */
+        .chat-list {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        .chat-row {
+            background: linear-gradient(90deg, #243552 0%, #1b2940 100%);
+            border: 2px solid #364e75;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            text-decoration: none;
+            color: #fff;
+        }
+        .chat-row:hover {
+            border-color: #ff9000;
+        }
+        .icon-box {
+            font-size: 2rem;
+            margin-right: 15px;
+            background: #2b3b52;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid #4a638d;
+        }
+        .chat-detail {
+            flex-grow: 1;
+        }
+        .chat-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ffca28;
+            text-shadow: 1px 1px 0px #000;
+        }
+        .chat-preview {
+            font-size: 0.9rem;
+            color: #b0c4de;
+            margin-top: 4px;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clan-header">
+        <div class="clan-badge">💬</div>
+        <h1 class="clan-name">メッセージ</h1>
+        <div class="clan-info">個別メッセージの履歴</div>
+    </div>
+
+    <div class="container">
+       <div class="chat-list">
+            <% if (chatPartners.length === 0) { %>
+                <div style="text-align: center; color: #b0c4de; margin-top: 30px;">
+                    まだメッセージのやり取りはありません。
+                </div>
+            <% } %>
+
+            <% chatPartners.forEach(partner => { %>
+                <a href="/chat/<%= partner.partner_id %>" class="chat-row">
+                    <div class="icon-box">⚔️</div>
+                    <div class="chat-detail">
+                        <div class="chat-name"><%= partner.partner_name %></div>
+                        <div class="chat-preview"><%= partner.latest_message %></div>
+                    </div>
+                    <div class="trophy-section">
+                        <small><%= new Date(partner.time).toLocaleDateString('ja-JP') %></small>
+                    </div>
+                </a>
+            <% }) %>
+        </div>
+    </div>
+
+    <nav class="footer-menu">
+        <a href="/posts" class="menu-item">
+            <span class="menu-icon">👑</span>
+            <span class="menu-text">掲示板</span>
+        </a>
+        <a href="/messages" class="menu-item active">
+            <span class="menu-icon">💬</span>
+            <span class="menu-text">メッセージ</span>
+        </a>
+        <a href="/profile" class="menu-item">
+            <span class="menu-icon">👤</span>
+            <span class="menu-text">プロフィール</span>
+        </a>
+        <a href="/settings" class="menu-item">
+            <span class="menu-icon">⚙️</span>
+            <span class="menu-text">設定</span>
+        </a>
+    </nav>
+</body>
+</html>
