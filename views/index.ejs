@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>趣味掲示板一覧</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="clan-header">
+        <div class="clan-badge">👑</div>
+        <h1 class="clan-name">趣味掲示板へようこそ！</h1>
+        <div class="clan-info">現在の募集枠: <%= results.length %> 件 | タイプ: 誰でも歓迎</div>
+    </div>
+
+    <div class="container">
+        <div class="btn-container">
+            <a href="/new" class="btn-clash">＋ 募集を投稿する</a>
+        </div>
+
+        <ul class="post-list">
+            <% results.forEach((post, index) => { %>
+                <% 
+                    const formattedDate = new Date(post.created_at).toLocaleString('ja-JP');
+                    const rank = index + 1;
+                    let rankClass = 'rank-other';
+                    if (rank === 1) rankClass = 'rank-1';
+                    if (rank === 2) rankClass = 'rank-2';
+                    if (rank === 3) rankClass = 'rank-3';
+                %>
+                <li class="member-row">
+                    <div class="rank-badge <%= rankClass %>"><%= rank %></div>
+                    
+                    <div class="member-info">
+                        <h2 class="member-title">
+                            <a href="/posts/<%= post.id %>"><%= post.title %></a>
+                        </h2>
+                        <div class="member-content"><%= post.content %></div>
+                    </div>
+                    
+                    <div class="trophy-section">
+                        🏆 ONLINE<br>
+                        <small><%= formattedDate %></small>
+                    </div>
+                </li>
+            <% }) %>
+        </ul>
+    </div>
+
+    <nav class="footer-menu">
+        <a href="/posts" class="menu-item active">
+            <span class="menu-icon">👑</span>
+            <span class="menu-text">掲示板</span>
+        </a>
+        <a href="/messages" class="menu-item">
+            <span class="menu-icon">💬</span>
+            <span class="menu-text">メッセージ</span>
+        </a>
+        <a href="/profile" class="menu-item">
+            <span class="menu-icon">👤</span>
+            <span class="menu-text">プロフィール</span>
+        </a>
+        <a href="/settings" class="menu-item">
+            <span class="menu-icon">⚙️</span>
+            <span class="menu-text">設定</span>
+        </a>
+    </nav>
+</body>
+</html>
