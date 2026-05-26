@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>チャット</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .chat-container {
+            max-width: 650px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 180px);
+        }
+        .message-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 2px solid #364e75;
+            margin-bottom: 15px;
+        }
+        .bubble {
+            max-width: 70%;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            position: relative;
+            line-height: 1.4;
+        }
+        /* 自分が送った吹き出し（右側・クラロワの緑っぽく風） */
+        .bubble.me {
+            background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+            border: 1px solid #81c784;
+        }
+        /* 相手が送った吹き出し（左側・ネイビー） */
+        .bubble.them {
+            background: linear-gradient(180deg, #37474f 0%, #212121 100%);
+            color: white;
+            align-self: flex-start;
+            margin-right: auto;
+            border: 1px solid #455a64;
+        }
+        .form-container {
+            background: #243552;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #364e75;
+        }
+        .chat-form {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input {
+            flex-grow: 1;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #4a638d;
+            background: #1a2436;
+            color: white;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clan-header">
+        <div class="clan-badge">⚔️</div>
+        <h1 class="clan-name">チャットルーム</h1>
+        <div class="clan-info"><a href="/messages" style="color: #ffca28; text-decoration: none;">⬅ 一覧に戻る</a></div>
+    </div>
+
+    <div class="container">
+        <div class="chat-container">
+            <div class="message-history">
+                <% messages.forEach(msg => { %>
+                    <div class="bubble <%= msg.sender_id === myId ? 'me' : 'them' %>">
+                        <%= msg.message %>
+                    </div>
+                <% }) %>
+            </div>
+
+            <div class="form-container">
+                <form action="/chat/<%= theirId %>" method="POST" class="chat-form">
+                    <input type="text" name="message" class="chat-input" placeholder="クランチャットに書き込む..." required autocomplete="off">
+                    <button type="submit" class="btn-clash" style="padding: 10px 20px; font-size: 1rem;">送信</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
