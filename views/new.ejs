@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>新規募集を投稿</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .form-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #243552;
+            border-radius: 12px;
+            border: 3px solid #364e75;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+        .form-title {
+            color: #ffc926;
+            text-shadow: 2px 2px 0px #000;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .input-label {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .chat-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 2px solid #4a638d;
+            background: #1a2436;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .chat-input:focus {
+            border-color: #ffc926;
+            outline: none;
+        }
+        .btn-submit-container {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h2 class="form-title">⚔️ 新規メンバー募集 ⚔️</h2>
+        
+        <form action="/posts" method="POST">
+            
+            <div class="input-group">
+                <label class="input-label">募集タイトル</label>
+                <input type="text" name="title" class="chat-input" placeholder="例：メンバー大募集！" required autocomplete="off">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">募集内容・条件</label>
+                <textarea name="content" class="chat-input" placeholder="活動方針などを書こう！" rows="6" required></textarea>
+            </div>
+            
+            <div class="btn-submit-container">
+                <button type="submit" class="btn-clash" style="padding: 12px 30px; font-size: 1.2rem;">🚀 募集を公開する</button>
+            </div>
+        </form>
+    </div>
+
+    <nav class="footer-menu">
+        <a href="/posts" class="menu-item active">
+            <span class="menu-icon">👑</span>
+            <span class="menu-text">掲示板</span>
+        </a>
+        <a href="/messages" class="menu-item">
+            <span class="menu-icon">💬</span>
+            <span class="menu-text">メッセージ</span>
+        </a>
+        <a href="/profile" class="menu-item">
+            <span class="menu-icon">👤</span>
+            <span class="menu-text">プロフィール</span>
+        </a>
+        <a href="/settings" class="menu-item">
+            <span class="menu-icon">⚙️</span>
+            <span class="menu-text">設定</span>
+        </a>
+    </nav>
+
+</body>
+</html>
