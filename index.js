@@ -271,6 +271,7 @@ app.post('/chat/:id', (req, res) => {
 
 app.get('/profile', (req, res) => {
     const myId = req.session.username; 
+    if (!myId) return res.redirect('/login');
     const testUser = { username: "名前は " + myId + " です" };
     res.render('profile', { user: testUser });
 });
@@ -291,7 +292,7 @@ app.post('/profile/update', upload.single('avatar'), (req, res) => {
             return res.status(500).send("データベースの保存に失敗しました");
         }
         console.log("phpmyadminへの保存が成功しました");
-        res.redirect('/profile'); 
+        res.redirect('/profile?success=true'); 
     });
 });
 

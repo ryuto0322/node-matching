@@ -267,3 +267,38 @@
 
 </body>
 </html>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.get('success') === 'true'){
+        const alertBox = document.createElement('div');
+        alertBox.innerText = 'プロフィール保存完了！';
+
+        Object.assign(alertBox.style, {
+                position: 'fixed',
+                top: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                backgroundColor: '#24334c',
+                color: '#fbd64e', // 綺麗な黄色
+                border: '2px solid #ff8c00', // メニューバーと同じオレンジ
+                padding: '15px 30px',
+                borderRadius: '8px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
+                zIndex: '9999',
+                fontSize: '16px',
+                transition: 'opacity 0.5s ease',
+                opacity: '0'
+            });
+
+            document.body.appendChild(alertBox);
+
+            setTimeout(() => {
+                alertBox.style.opacity = '1';
+            },100);
+            setTimeout(() =>{
+                alertBox.style.opacity = '0';
+                window.history.replaceState({}, document.title,window.location.pathname);
+            },3000);
+        }
+</script>
