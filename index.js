@@ -2,8 +2,21 @@ const express = require('express');
 const connection = require('./db');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
-
 const app = express();
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'public/uploads/')
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = file.originalname.split('.').pop();
+        cb(null, uniqueSuffix + '.' + ext); 
+    }
+});
+
+const upload = multer({ storage: storage });
 
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
@@ -21,17 +34,14 @@ app.use(session({
 // 1. 認証関連（登録・ログイン）
 // ==========================================
 
-// トップページから新規登録へリダイレクト
 app.get('/', (req, res) => {
     res.redirect('/signup');
 });
 
-// 新規登録画面を表示
 app.get('/signup', (req, res) => {
     res.render('signup');
 });
 
-// 新規登録処理
 app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
 
@@ -50,12 +60,10 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-// ログイン画面を表示
 app.get('/login', (req, res) => {
     res.render('login');
 });
 
-// ログイン処理
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
     const sql = 'SELECT * FROM users WHERE email = ?';
@@ -81,7 +89,6 @@ app.post('/login', (req, res) => {
 // 2. 掲示板関連（一覧・詳細・コメント）
 // ==========================================
 
-// 掲示板一覧画面を表示
 app.get('/posts', (req, res) => {
     const sql = 'SELECT * FROM posts ORDER BY created_at DESC';
 
@@ -94,20 +101,11 @@ app.get('/posts', (req, res) => {
     });
 });
 
-
-
-// ➕ 新規募集の投稿画面を表示する窓口
 app.get('/new', (req, res) => {
-    // ログインしていなければ、勝手に見せない（マイキーガード）
     if (!req.session.userId) return res.redirect('/login');
-    
-    // さっき作った new.ejs を画面に表示！
     res.render('new');
 });
 
-
-
-// 新規募集の投稿処理
 app.post('/posts', (req, res) => {
     const myId = req.session.userId; 
     const { title, content } = req.body; 
@@ -125,7 +123,6 @@ app.post('/posts', (req, res) => {
     });
 });
 
-// 募集の詳細画面（クランチャット風コメント欄含む）
 app.get('/posts/:id', (req, res) => {
     const postId = req.params.id;
     const postSql = 'SELECT * FROM posts WHERE id = ?';
@@ -151,7 +148,6 @@ app.get('/posts/:id', (req, res) => {
     });
 });
 
-// 詳細画面からのチャット（コメント）送信処理
 app.post('/posts/:id/comments', (req, res) => {
     const postId = req.params.id; 
     const commentContent = req.body.comment_content; 
@@ -167,15 +163,13 @@ app.post('/posts/:id/comments', (req, res) => {
         res.redirect(`/posts/${postId}`);
     });
 });
-// 🗑️ 募集の削除処理（マスターキー付き）
+
 app.get('/posts/:id/delete', (req, res) => {
     const postId = req.params.id;
-    const myId = req.session.userId; // ログイン中の自分のID
+    const myId = req.session.userId;
 
     if (!myId) return res.redirect('/login');
 
-    // 💡 万が一、URLを直接叩いて削除しようとする他人がいても、ここで鉄壁のガード！
-    // 「投稿のID」と「書いた人のID（user_id）」が一致するときだけ消せるSQLにする
     const sql = 'DELETE FROM posts WHERE id = ? AND user_id = ?';
 
     connection.query(sql, [postId, myId], (err, result) => {
@@ -183,8 +177,6 @@ app.get('/posts/:id/delete', (req, res) => {
             console.error('削除エラー:', err);
             return res.status(500).send('削除に失敗しました');
         }
-
-        // 削除が終わったら、掲示板の一覧画面（/posts）にシュッと戻る
         res.redirect('/posts');
     });
 });
@@ -193,7 +185,6 @@ app.get('/posts/:id/delete', (req, res) => {
 // 3. メッセージ（1対1ダイレクトチャット）関連
 // ==========================================
 
-// メッセージ履歴のあるユーザー一覧を表示（LINE風）
 app.get('/messages', (req, res) => {
     const myId = req.session.userId; 
 
@@ -225,13 +216,11 @@ app.get('/messages', (req, res) => {
     });
 });
 
-// 特定の相手（:id）とのダイレクトチャット画面を表示
 app.get('/chat/:id', (req, res) => {
     const myId = req.session.userId; 
 
     if (!myId) return res.redirect('/login');
 
-    // 本番用のメッセージ一覧ロジック（※必要に応じて個別チャット履歴の取得SQLへ変更可能）
     const sql = `
         SELECT 
             u.id AS partner_id,
@@ -258,7 +247,6 @@ app.get('/chat/:id', (req, res) => {
     });
 });
 
-// ダイレクトメッセージの送信処理
 app.post('/chat/:id', (req, res) => {
     const myId = req.session.userId;
     const theirId = req.params.id;
@@ -277,9 +265,38 @@ app.post('/chat/:id', (req, res) => {
     });
 });
 
+// ==========================================
+// 4. プロフィール関連
+// ==========================================
+
+app.get('/profile', (req, res) => {
+    const myId = req.session.username; 
+    const testUser = { username: "名前は " + myId + " です" };
+    res.render('profile', { user: testUser });
+});
+
+app.post('/profile/update', upload.single('avatar'), (req, res) => {
+    console.log("文字データ:", req.body);
+    console.log("画像データ:", req.file);
+
+    const { bio, birthday, age, gender } = req.body;
+    const avatar = req.file ? req.file.filename : null;
+    const myId = req.session.username;
+
+    const sql = "UPDATE users SET bio = ?, birthday = ?, age = ?, gender = ?, avatar = ? WHERE username = ?";
+
+    connection.query(sql, [bio, birthday, age, gender, avatar, myId], (err, result) => {
+        if (err) {
+            console.error("データベース接続エラー", err);
+            return res.status(500).send("データベースの保存に失敗しました");
+        }
+        console.log("phpmyadminへの保存が成功しました");
+        res.redirect('/profile'); 
+    });
+});
 
 // ==========================================
-// 4. サーバー起動
+// 5. サーバー起動
 // ==========================================
 app.listen(PORT, () => {
     console.log(`\n==================================================`);

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロフィール設定</title>
+    <style>
+        /* 全体のダークモード背景設定 */
+        body {
+            background-color: #1a2436;
+            color: #ffffff;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ❌ max-width: 500px を削除し、画面幅に合わせる */
+        .profile-container {
+            width: 100%;
+            max-width: 1200px; /* パソコンで見ても広がりすぎない丁度いい最大幅 */
+            padding: 40px 20px; /* 左右と上下にゆったりした余白 */
+            box-sizing: border-box;
+            padding-bottom: 120px; /* 下部メニューと被らないための余白 */
+        }
+
+        /* メッセージ画面と完全に統一したヘッダーデザイン */
+        .profile-header {
+            background: linear-gradient(135deg, #24334c 0%, #1b2639 100%);
+            border: 1px solid #344664;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .profile-header h1 {
+            font-size: 24px;
+            margin: 0 0 8px 0;
+            color: #fbd64e; /* メッセージ画面と同じ綺麗な黄色 */
+            letter-spacing: 1px;
+        }
+
+        .user-display {
+            font-size: 15px;
+            color: #8fa0bc;
+        }
+
+        /* フォームの中身を少しスッキリ見せる枠 */
+        form {
+            background-color: rgba(36, 51, 76, 0.4);
+            border: 1px solid #344664;
+            border-radius: 12px;
+            padding: 30px;
+        }
+
+        /* 各入力グループのスタイル */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-size: 15px;
+            font-weight: bold;
+            color: #b0c4de;
+        }
+
+        /* 入力ボックス（横幅いっぱいに広がるように設定） */
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        textarea {
+            background-color: #121a26;
+            border: 1px solid #344664;
+            border-radius: 8px;
+            color: #ffffff;
+            padding: 14px;
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            width: 100%; /* 横幅いっぱいに広げる */
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #5d78a3;
+            box-shadow: 0 0 8px rgba(93, 120, 163, 0.5);
+        }
+
+        /* 年齢入力欄だけは広がりすぎないように調整 */
+        .age-input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .age-input-container input[type="number"] {
+            width: 100px; /* 年齢ボックスの幅を固定 */
+        }
+        .age-input-container span {
+            color: #b0c4de;
+            font-size: 15px;
+        }
+
+        /* 性別ラジオボタン */
+        .gender-options {
+            display: flex;
+            gap: 25px;
+            margin-top: 5px;
+        }
+
+        .gender-options label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #ffffff;
+            font-size: 15px;
+        }
+
+        .gender-options input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* 画像選択 */
+        input[type="file"] {
+            color: #8fa0bc;
+            font-size: 15px;
+            padding: 5px 0;
+        }
+
+        /* 保存ボタンも横幅いっぱいの迫力あるデザインに */
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #3a537d, #24334c);
+            border: 1px solid #4a6694;
+            border-radius: 8px;
+            color: #ffffff;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: opacity 0.2s, transform 0.1s;
+            margin-top: 15px;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.9;
+        }
+        .submit-btn:active {
+            transform: scale(0.99);
+        }
+
+        /* 📱 下部ナビゲーションバー（横幅いっぱい＆上部にオレンジ線） */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #121a26;
+            border-top: 2px solid #ff8c00; /* メッセージ画面と同じオレンジ線 */
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .nav-item {
+            color: #8fa0bc;
+            text-decoration: none;
+            font-size: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+
+        /* 現在のページ（プロフィール）を紫色に */
+        .nav-item.active {
+            color: #a87ffb;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-container">
+        
+        <div class="profile-header">
+            <div style="font-size: 45px; margin-bottom: 10px;">👤</div>
+            <h1>プロフィール設定</h1>
+            <div class="user-display"><%= user.username %></div>
+        </div>
+
+        <form action="/profile/update" method="post" enctype="multipart/form-data">
+
+            <div class="form-group">
+                <label for="bio">自己紹介</label>
+                <textarea id="bio" name="bio" rows="4" placeholder="簡単に自己紹介を書いてみよう！"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="birthday">生年月日</label>
+                <input type="date" id="birthday" name="birthday">
+            </div>
+
+            <div class="form-group">
+                <label for="age">年齢</label>
+                <div class="age-input-container">
+                    <input type="number" id="age" name="age" min="0" max="120">
+                    <span>歳</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>性別</label>
+                <div class="gender-options">
+                    <label><input type="radio" name="gender" value="male"> 男</label>
+                    <label><input type="radio" name="gender" value="female"> 女</label>
+                    <label><input type="radio" name="gender" value="none"> 回答しない</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="avatar">プロフィール画像</label>
+                <input type="file" id="avatar" name="avatar" accept="image/*">
+            </div>
+
+            <button type="submit" class="submit-btn">プロフィールを保存する</button>
+
+        </form>
+    </div>
+
+    <div class="nav-bar">
+        <a href="/posts" class="nav-item">
+            <span class="nav-icon">👑</span>
+            <span>掲示板</span>
+        </a>
+        <a href="/messages" class="nav-item">
+            <span class="nav-icon">💬</span>
+            <span>メッセージ</span>
+        </a>
+        <a href="/profile" class="nav-item active">
+            <span class="nav-icon">👤</span>
+            <span>プロフィール</span>
+        </a>
+        <a href="/settings" class="nav-item">
+            <span class="nav-icon">⚙️</span>
+            <span>設定</span>
+        </a>
+    </div>
+
+</body>
+</html>
